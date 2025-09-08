@@ -1,0 +1,24 @@
+
+# Virtual environment
+.venv/
+__pycache__/
+*.pyc
+
+# Project documentation
+CLAUDE.md
+
+# Jupyter notebook checkpoints
+.ipynb_checkpoints/
+
+# Python cache
+*.egg-info/
+build/
+dist/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
