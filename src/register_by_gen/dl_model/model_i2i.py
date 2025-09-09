@@ -85,7 +85,7 @@ class I2IModel(L.LightningModule):
         # GridAggregator to collect results
         aggregator = tio.inference.GridAggregator(
             grid_sampler,
-            overlap_mode='average'
+            overlap_mode='hann'
         )
 
         patch_loader = torch.utils.data.DataLoader(

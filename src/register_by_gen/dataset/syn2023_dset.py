@@ -142,10 +142,6 @@ if __name__ == "__main__":
     dset_train = SynthRad2023Dataset(data_root, split="train")
     peek(dset_train.get_2d_train_loader(patch_size=(128,128,1), batch_size=4, samples_per_volume=4),
          "Train 2D")
-    peek(dset_train.get_25d_train_loader(patch_size=(128,128,3), batch_size=2, samples_per_volume=4),
-         "Train 2.5D")
-    peek(dset_train.get_train_loader(patch_size=(96,96,48), batch_size=1, samples_per_volume=2),
-         "Train 3D")
 
     # test loader (full volume)
     dset_test = SynthRad2023Dataset(data_root, split="test")
