@@ -1,0 +1,4 @@
+[core]
+    remote = backup
+['remote "backup"']
+    url = /data/kanghyun/register-by-gen
