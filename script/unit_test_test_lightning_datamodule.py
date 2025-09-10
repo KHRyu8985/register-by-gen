@@ -3,7 +3,7 @@ Test script for Lightning DataModule.
 """
 
 import autorootcwd
-from src.register_by_gen.dataset import SynthRAD2023DataModule
+from src.register_by_gen.dataset.syn2023_dset import SynthRAD2023DataModule
 
 
 def main():

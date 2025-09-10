@@ -1,0 +1,35 @@
+# Fast test configuration for quick experiments
+# Usage: uv run python script/train_with_cli.py --config script/configs/fast_test.yaml
+
+model:
+  class_path: src.register_by_gen.dl_model.model_i2i.I2IModel
+  init_args:
+    in_channels: 1
+    out_channels: 1
+    lr: 0.002  # Higher learning rate for fast testing
+
+data:
+  class_path: src.register_by_gen.dataset.syn2023_dset.SynthRAD2023DataModule
+  init_args:
+    data_root: "data/syn23_pelvic"
+    mode: "2d"
+    patch_size: [128, 128]  # Smaller patches for speed
+    batch_size: 8           # Smaller batch size
+    num_workers: 2
+    samples_per_volume: 10  # Fewer samples per volume
+
+trainer:
+  max_epochs: 5    # Very few epochs
+  accelerator: auto
+  devices: 1
+  precision: "16-mixed"  # Mixed precision for speed
+  log_every_n_steps: 5
+  check_val_every_n_epoch: 1
+  enable_progress_bar: true
+  logger:
+    class_path: lightning.pytorch.loggers.CSVLogger
+    init_args:
+      save_dir: "logs"
+      name: "i2i_fast_test"
+
+seed_everything: 42

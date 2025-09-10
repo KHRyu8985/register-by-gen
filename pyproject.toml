@@ -19,7 +19,7 @@ dependencies = [
   "jupyter-ai[all]>=2.31.6",
   "jupyterlab>=4.4.7",
   "kaggle>=1.7.4.5",
-  "lightning>=2.5.4",
+  "lightning[pytorch-extra]>=2.5.4",
   "matplotlib>=3.10.6",
   "monai",
   "natten",

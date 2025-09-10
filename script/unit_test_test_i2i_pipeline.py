@@ -7,7 +7,7 @@ import torch
 import lightning as L
 from lightning.pytorch.loggers import CSVLogger
 from src.register_by_gen.dl_model.model_i2i import I2IModel
-from src.register_by_gen.dataset.lightning_datamodule import SynthRAD2023DataModule
+from src.register_by_gen.dataset.syn2023_dset import SynthRAD2023DataModule
 import os
 os.environ["NCCL_P2P_DISABLE"] = "1" # remove error of ddp
 torch.set_float32_matmul_precision('medium')
@@ -43,8 +43,8 @@ def test_i2i_pipeline():
     # 4. Create Lightning Trainer
     print("\n⚡ Creating Lightning Trainer...")
     trainer = L.Trainer(
-        max_epochs=100,
-        enable_checkpointing=False,
+        max_epochs=5,
+        enable_checkpointing=True,
         logger=csv_logger,
         enable_progress_bar=True,
         accelerator='auto',
@@ -57,6 +57,8 @@ def test_i2i_pipeline():
     print("\n🏋️ Testing training steps...")
     trainer.fit(model, datamodule=data_module)
     print("✅ Training completed successfully!")
-    
+    trainer.test(model, datamodule=data_module)
+    print("✅ Testing completed successfully!")
+
 if __name__ == "__main__":
     test_i2i_pipeline()

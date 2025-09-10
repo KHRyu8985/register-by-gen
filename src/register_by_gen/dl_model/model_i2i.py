@@ -55,8 +55,8 @@ class I2IModel(L.LightningModule):
         
         return loss
     
-    def validation_step(self, batch, batch_idx):
-        """GridSampler-based sliding window validation with patch aggregation."""
+    def _sliding_window_inference(self, batch):
+        """Shared sliding window inference logic for validation and test."""
         
         # Get volumes (1,1,X,Y,Z) - already on GPU
         input_volume = batch['img']  
@@ -116,13 +116,73 @@ class I2IModel(L.LightningModule):
         # Add batch dimension back and move to GPU: (1,X,Y,Z) -> (1,1,X,Y,Z)
         pred_volume = pred_volume.unsqueeze(0).to(self.device)
         
-        # Calculate validation loss
-        val_loss = self.loss_fn(pred_volume, target_volume)
+        # Calculate loss
+        loss = self.loss_fn(pred_volume, target_volume)
+        
+        return loss
+
+    def validation_step(self, batch, batch_idx):
+        """GridSampler-based sliding window validation with patch aggregation."""
+        
+        val_loss = self._sliding_window_inference(batch)
         
         # Logging
         self.log("val/loss", val_loss, prog_bar=True)
         
         return val_loss 
+    
+    def test_step(self, batch, batch_idx):
+        """Test step with per-subject logging and separate from validation."""
+        
+        # Run sliding window inference (no val/loss logging)
+        test_loss = self._sliding_window_inference(batch)
+        
+        # Extract subject ID from batch
+        subject_id = batch.get('subject_id', [f'subject_{batch_idx}'])[0]
+        
+        # Log per-subject loss (each step)
+        self.log(f"test/{subject_id}_loss", test_loss, on_step=True, on_epoch=False, prog_bar=False)
+        
+        # Store losses for epoch-end statistics
+        if not hasattr(self, 'test_step_outputs'):
+            self.test_step_outputs = []
+        
+        self.test_step_outputs.append({
+            'loss': test_loss,
+            'subject_id': subject_id
+        })
+        
+        return test_loss
+    
+    def on_test_epoch_end(self):
+        """Calculate and log test statistics at epoch end."""
+        
+        if not hasattr(self, 'test_step_outputs') or not self.test_step_outputs:
+            return
+        
+        # Extract losses
+        losses = torch.stack([x['loss'] for x in self.test_step_outputs])
+        
+        # Calculate statistics
+        mean_loss = losses.mean()
+        std_loss = losses.std()
+         
+        # Log statistics
+        self.log("test/loss_mean", mean_loss, prog_bar=True)
+        self.log("test/loss_std", std_loss, prog_bar=True)
+        
+        # Print summary
+        print("=== Test Results Summary ===")
+        print(f"Mean Loss: {mean_loss:.4f} ± {std_loss:.4f}")
+        print(f"Total subjects: {len(self.test_step_outputs)}")
+        
+        # Subject-wise results
+        print("Per-subject results:")
+        for output in self.test_step_outputs:
+            print(f"  {output['subject_id']}: {output['loss']:.4f}")
+        
+        # Clear for next test run
+        self.test_step_outputs.clear()
     
     def configure_optimizers(self):
         return torch.optim.Adam(
